@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  python:
+    build:
+      context: ./python
+    entrypoint: /app/entrypoint.sh
+    volumes:
+      - "./python/app:/app"
