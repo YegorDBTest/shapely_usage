@@ -15,6 +15,19 @@ class Geom:
             angle
         )
 
+    def __gt__(self, other):
+        return (
+            self.polygon.bounds[0] > other.polygon.bounds[2]
+            or self.polygon.bounds[2] > other.polygon.bounds[0]
+            and self.polygon.bounds[3] < other.polygon.bounds[1]
+        )
+
+    def __eq__(self, other):
+        return (
+            self.polygon.bounds[0] == other.polygon.bounds[0]
+            and self.polygon.bounds[1] == other.polygon.bounds[1]
+        )
+
 
 if __name__ == '__main__':
     items = (
@@ -23,6 +36,8 @@ if __name__ == '__main__':
         Geom(5, 10, 4, 2, 28.2),
         Geom(10, 10, 4, 2, 36.7),
     )
+
+    print(MultiPolygon(map(attrgetter('polygon'), sorted(items))).wkt)
 
     polygons = MultiPolygon(map(attrgetter('polygon'), items))
 
