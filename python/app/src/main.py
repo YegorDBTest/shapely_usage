@@ -31,17 +31,19 @@ class Geom:
 
 if __name__ == '__main__':
     items = (
-        Geom(5, 5, 4, 2, 30.0),
+        Geom(2, 5, 4, 2, 30.0),
         Geom(10, 5, 4, 2, 31.6),
-        Geom(5, 10, 4, 2, 28.2),
+        Geom(2, 10, 4, 2, 28.2),
         Geom(10, 10, 4, 2, 36.7),
     )
 
-    print(MultiPolygon(map(attrgetter('polygon'), sorted(items))).wkt)
-
-    polygons = MultiPolygon(map(attrgetter('polygon'), items))
-
+    mp = MultiPolygon(map(attrgetter('polygon'), items))
     average_angle = fmean(map(attrgetter('angle'), items))
+    rotated_mp = affinity.rotate(mp, -average_angle)
+    print(rotated_mp.wkt)
 
-    print(polygons.wkt)
-    print(affinity.rotate(polygons, -average_angle).wkt)
+    for i, pg in enumerate(rotated_mp.geoms):
+        items[i].polygon = pg
+
+    for item in sorted(items):
+        print(item.polygon.wkt)
