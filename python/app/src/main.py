@@ -1,9 +1,11 @@
+import math
+
 from operator import attrgetter
 
 from statistics import fmean
 
 from shapely import affinity
-from shapely.geometry import box, MultiPolygon
+from shapely.geometry import box, Polygon, MultiPolygon
 
 
 class GeomLine:
@@ -44,13 +46,18 @@ class Geom:
             and self.polygon.bounds[1] == other.polygon.bounds[1]
         )
 
-    def get_lines(self):
+    def get_front_polygon(self, right_border):
         coords = tuple(self.polygon.boundary.coords)
-        lines = [GeomLine(coords[i : i + 2]) for i in range(4)]
-        return {
-            'back': min(*lines),
-            'front': max(*lines),
-        }
+        front_line = max(*(GeomLine(coords[i : i + 2]) for i in range(4)))
+        p1, p2 = front_line.points
+        if self.angle == 0:
+            p3 = (right_border, p2[1])
+            p4 = (right_border, p1[1])
+        else:
+            tan = math.tan(math.radians(90 - self.angle))
+            p3 = (right_border, p2[1] + ((right_border - p2[0]) / tan))
+            p4 = (right_border, p1[1] + ((right_border - p1[0]) / tan))
+        return Polygon([p1, p2, p3, p4])
 
 
 if __name__ == '__main__':
@@ -64,13 +71,16 @@ if __name__ == '__main__':
     mp = MultiPolygon(map(attrgetter('polygon'), items))
     average_angle = fmean(map(attrgetter('angle'), items))
     rotated_mp = affinity.rotate(mp, -average_angle)
-    # print(rotated_mp.wkt)
+    print(rotated_mp.wkt)
+
+    right_border = rotated_mp.bounds[3]
 
     for i, pg in enumerate(rotated_mp.geoms):
         items[i].polygon = pg
+        items[i].angle -= average_angle
 
+    front_polygons = []
     for item in sorted(items):
-        # print(item.polygon.wkt)
-        lines = item.get_lines()
-        print('back', lines['back'].points)
-        print('front', lines['front'].points)
+        front_polygons.append(item.get_front_polygon(right_border))
+    front_polygons_mp = MultiPolygon(front_polygons)
+    print(front_polygons_mp.wkt)
