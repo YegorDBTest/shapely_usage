@@ -50,6 +50,17 @@ class Geom:
         coords = tuple(self.polygon.boundary.coords)
         front_line = max(*(GeomLine(coords[i : i + 2]) for i in range(4)))
         p1, p2 = front_line.points
+
+        if p1[1] < p2[1]:
+            p1, p2 = p2, p1
+        d = 0.1
+        p1 = (
+            p1[0] + d * math.sin(math.radians(self.angle)),
+            p1[1] + d * math.cos(math.radians(self.angle)))
+        p2 = (
+            p2[0] + d * math.sin(math.radians(self.angle)),
+            p2[1] - d * math.cos(math.radians(self.angle)))
+
         if self.angle == 0:
             p3 = (right_border, p2[1])
             p4 = (right_border, p1[1])
